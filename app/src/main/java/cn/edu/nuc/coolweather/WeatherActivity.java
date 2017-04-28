@@ -1,5 +1,6 @@
 package cn.edu.nuc.coolweather;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -25,6 +26,7 @@ import java.io.IOException;
 
 import cn.edu.nuc.coolweather.gson.Forecast;
 import cn.edu.nuc.coolweather.gson.Weather;
+import cn.edu.nuc.coolweather.service.AutoUpdateService;
 import cn.edu.nuc.coolweather.util.HttpUtil;
 import cn.edu.nuc.coolweather.util.Utility;
 import okhttp3.Call;
@@ -141,8 +143,6 @@ public class WeatherActivity extends AppCompatActivity {
     public void requestWeather(final String weatherId) {
         String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId +
                 "&key=492e6b4a12624c0fba8a955b9494b11f";
-        Log.w("WeatherActivity", weatherId);
-        Log.w("WeatherActivity", weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -218,6 +218,14 @@ public class WeatherActivity extends AppCompatActivity {
     * 处理并展示Weather实体类中的数据，即显示天气
     * */
     private void showWeatherInfo(Weather weather){
+        if (weather != null && "ok".equals(weather.status)){
+            Intent intent = new Intent(this, AutoUpdateService.class);
+            startService(intent);
+            Toast.makeText(WeatherActivity.this, "后台服务开始运行", Toast.LENGTH_SHORT).show();
+        }else {
+            Toast.makeText(WeatherActivity.this, "后台服务运行错误", Toast.LENGTH_SHORT).show();
+        }
+
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[0];
         String degree = weather.now.temperature + "°C";
